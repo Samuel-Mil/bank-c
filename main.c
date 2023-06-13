@@ -15,15 +15,8 @@ struct Users {
 struct Receipt{
 	struct tm *tm;
 	float depositValue;
+	float transferValue;
 } receipt;
-
-/*
- r = {
-	{"dt", 300},
-	{"dt", 300},
-	{"dt", 300}
- }
-*/
 
 int countDigits(int num) {
     int count = 0;
@@ -41,27 +34,23 @@ void signup(){
 	printf("Digite sua renda mensal: ");
 	scanf("%f", &user.income);
 
-	printf("Digite sua senha de acesso(ela deve conter mais de 8 digitos): ");
+	printf("Digite sua senha de acesso(ela deve conter exatos de 8 digitos): ");
 	scanf("%d", &user.password);
 
-	while(countDigits(user.password) < 8){
-		printf("Sua senha tem que ser maior que 8 digitos!\n");
+	while(countDigits(user.password) != 8){
+		printf("Sua senha tem que ter exatos 8 digitos!\n");
 		printf("Digite sua senha de acesso: ");
 		scanf("%d", &user.password);
 	}
 }
 
-bool login(){
-	int password;
-	printf("Digite sua senha: ");
-	scanf("%d", &password);
-
+bool verifyPassword(int password){
 	if(password != user.password){
 		int trys = 3;
 		while(password != user.password){
 			if (trys <= 0){
 				printf("Sua conta foi bloqueada! Entre em contato com o gerente do seu banco em uma unidade presencial!\n");
-				return false;
+				exit(EXIT_SUCCESS);
 			}
 
 			printf("Senha incorreta! Você têm somente %d tentativas\n", trys);
@@ -71,22 +60,56 @@ bool login(){
 		}
 	}
 
+	return true;
+}
+
+bool login(){
+	int password;
+	printf("Digite sua senha: ");
+	scanf("%d", &password);
+
+	verifyPassword(password);
+
 	printf("Bem vindo %s\n", user.name);
+	return true;
+}
+
+bool changePassword(){
+	int password;
+	printf("Digite sua senha atual: ");
+	scanf("%d", &password);
+
+	verifyPassword(password);
+
+	printf("Troca de senha aprovada!\n");
+	printf("Digite sua nova senha: ");
+	scanf(" %d", &user.password);
+
+	while(countDigits(user.password) != 8){
+		printf("Sua senha tem que ter exatos 8 digitos!\n");
+		printf("Digite sua senha de acesso: ");
+		scanf("%d", &user.password);
+	}
+
 	return true;
 }
 
 void menu(){
 	int opt;
+	time_t t = time(NULL);
+	char yn;
+
 	printf("\nMENU DE OPÇÕES.\n");
 	printf("[1] Sacar dinheiro.\n");
 	printf("[2] Depositar dinheiro.\n");
 	printf("[3] Saldos e extratos.\n");
 	printf("[4] Transferência.\n");
-	printf("[5] Trocar senha.");
+	printf("[5] Trocar senha.\n");
 	printf("Escolha uma opção(somente no numero): ");
 	scanf("%d", &opt);
 
 	switch(opt){
+		// Sacar dinheiro
 		case 1: {
 			float value;
 			printf("Quanto deseja sacar? ");
@@ -102,12 +125,12 @@ void menu(){
 			printf("Você sacou %.2f com sucesso!", value);
 		} break;
 
+		//Depositar dinheiro
 		case 2: {
 			float deposit;
 			printf("Quanto deseja depositar? ");
 			scanf("%f", &deposit);
 
-			time_t t = time(NULL);
 			receipt.tm = localtime(&t);
 			receipt.depositValue = deposit;
 			user.income = user.income + deposit;
@@ -117,7 +140,6 @@ void menu(){
 			printf("| Valor na conta bancaria: %.2f\n", user.income);
 			printf("+------------------------------------------------------+\n");
 
-			char yn;
 			printf("Deseja imprimir o comprovante? [s] Sim [n] Não.: ");
 			scanf(" %c", &yn);
 
@@ -126,6 +148,51 @@ void menu(){
 				printf("Impresso com sucesso! Dê uma olhada na sua impressora;\n");
 			}
 		} break;
+
+		// Saldos e extratos
+		case 3: {
+
+		} break;
+
+		// Transferencias
+		case 4: {
+			char transferUser[50];
+			float transferValue;
+			printf("Digite o nome da pessoa o qual vai receber: ");
+			scanf(" %[^\n]%*c", transferUser);
+
+			printf("Quanto você vai transferir para %s: ", transferUser);
+			scanf("%f", &transferValue);
+
+			receipt.tm = receipt.tm = localtime(&t);
+			receipt.transferValue = transferValue;
+			user.income = user.income - transferValue;
+			printf("+------------------------------------------------------+\n");
+			printf("| Tranferido de %s para %s\n", user.name, transferUser);
+			printf("| DATA: %s", asctime(receipt.tm));
+			printf("| Valor transferido: %.2f\n", receipt.transferValue);
+			printf("| Valor na conta bancaria: %.2f\n", user.income);
+			printf("+------------------------------------------------------+\n");
+
+			printf("Deseja imprimir o comprovante? [s] Sim [n] Não.: ");
+			scanf(" %c", &yn);
+
+			if(yn == 's'){
+				printf("Imprimindo...\n");
+				printf("Impresso com sucesso! Dê uma olhada na sua impressora;\n");
+			}
+		} break;
+
+		// Trocar senhas
+		case 5: {
+			if(changePassword()){
+				printf("Senha trocada com sucesso!\n");
+			}
+		} break;
+
+		default:
+			printf("Operação inválida!\n");
+		break;
 	}
 
 }
