@@ -18,6 +18,12 @@ struct Receipt{
 	float transferValue;
 } receipt;
 
+struct Extract{
+	float income;
+	float withdrawal;
+	char tm[50];
+} extracts[100] = {};
+
 int countDigits(int num) {
     int count = 0;
     while (num != 0) {
@@ -151,7 +157,21 @@ void menu(){
 
 		// Saldos e extratos
 		case 3: {
+			int opt2;
+			printf("Saldos e extratos\n");
+			printf("[1] Saldo simples.\n");
+			printf("[2] Extrato.\n");
+			printf("Excolha uma opção: ");
+			scanf("%d", &opt2);
 
+			struct tm *tm = localtime(&t);
+			if(opt2 == 1){
+				printf("+---------------------------------------------------------------------+\n");
+				printf("| Seu saldo atual: %.2f\n", user.income);
+				printf("| Seu nome no registro: %s\n", user.name);
+				printf("| Data da atual situação do saldo: %s\n", asctime(tm));
+				printf("+---------------------------------------------------------------------+\n");
+			}
 		} break;
 
 		// Transferencias
@@ -164,7 +184,7 @@ void menu(){
 			printf("Quanto você vai transferir para %s: ", transferUser);
 			scanf("%f", &transferValue);
 
-			receipt.tm = receipt.tm = localtime(&t);
+			receipt.tm = localtime(&t);
 			receipt.transferValue = transferValue;
 			user.income = user.income - transferValue;
 			printf("+------------------------------------------------------+\n");
@@ -207,9 +227,7 @@ int main(){
 
 	printf("Usuário criado com sucesso! Agora faça o login como %s!\n", user.name);
 
-	if(!login()){
-		return 0;
-	}
+	login();
 
 	// Logado
 
