@@ -5,6 +5,8 @@
 #include <time.h>
 #include <string.h>
 
+#define MAX_SIZE 100
+
 struct Users {
 	char name[50];
 	float income;
@@ -19,10 +21,15 @@ struct Receipt{
 } receipt;
 
 struct Extract{
-	float income;
-	float withdrawal;
-	char tm[50];
-} extracts[100] = {};
+	char type[20];
+	char name[50];
+	float inVal;
+	float outVal;
+	struct tm *tm;
+};
+
+struct Extract *extracts[MAX_SIZE];
+int counter = 0;
 
 int countDigits(int num) {
     int count = 0;
@@ -100,10 +107,143 @@ bool changePassword(){
 	return true;
 }
 
-void menu(){
-	int opt;
+void createExtract(
+	char *type,
+	char *name,
+	float inVal,
+	float outVal 
+){
 	time_t t = time(NULL);
+
+	if(counter >= MAX_SIZE){
+		printf("O array está cheio!");
+		return;
+	}
+
+	/* id; type[20]; name; inVal; outVal; tm[50]; */
+
+    struct Extract* newExtract = (struct Extract*)malloc(sizeof(struct Extract));
+
+
+	strcpy(newExtract->type, type);
+    strcpy(newExtract->name, name);
+	newExtract->inVal = inVal;
+	newExtract->outVal = outVal;
+	newExtract->tm = localtime(&t);
+
+	extracts[counter] = newExtract;
+	counter++;
+}
+
+void withdraw(){
+	float value;
+	printf("Quanto deseja sacar? ");
+	scanf("%f", &value);
+	while(value > user.income){
+		printf("Você não pode sacar mais do que tem!\n");
+		printf("Você possui %.2f\n", user.income);
+		printf("Quanto deseja sacar? ");
+		scanf("%f", &value);
+	}
+
+	user.income = user.income - value;
+	createExtract("Saque", "", 0, value);
+	printf("Você sacou %.2f com sucesso!", value);
+}
+
+void deposit(){
+	float deposit;
+	printf("Quanto deseja depositar? ");
+	scanf("%f", &deposit);
+time_t t = time(NULL);
+
+	receipt.tm = localtime(&t);
+	receipt.depositValue = deposit;
+	user.income = user.income + deposit;
+	createExtract("Deposito", "", deposit, 0);
+	printf("+------------------------------------------------------+\n");
+	printf("| DATA: %s", asctime(receipt.tm));
+	printf("| Valor depositado: %.2f\n", deposit);
+	printf("| Valor na conta bancaria: %.2f\n", user.income);
+	printf("+------------------------------------------------------+\n");
+
 	char yn;
+	printf("Deseja imprimir o comprovante? [s] Sim [n] Não.: ");
+	scanf(" %c", &yn);
+
+	if(yn == 's'){
+		printf("Imprimindo...\n");
+		printf("Impresso com sucesso! Dê uma olhada na sua impressora;\n");
+	}
+}
+
+void balance(){
+	time_t t = time(NULL);
+	struct tm *tm;
+	printf("+---------------------------------------------------------------------+\n");
+	printf("| Seu saldo atual: %.2f\n", user.income);
+	printf("| Seu nome no registro: %s\n", user.name);
+	printf("| Data da atual situação do saldo: %s\n", asctime(tm));
+	printf("+---------------------------------------------------------------------+\n");
+}
+
+void listExtracts(){
+	printf("SEUS EXTRATOS:\n");
+
+	for(int i = 0; i < counter; i++){
+		printf("+----------------------------------------------------------------+\n");
+		printf("| Tipo: %s\n", extracts[i]->type);
+
+		if(extracts[i]->name != "")
+			printf("| Quem Recebeu: %s\n", extracts[i]->name);
+		if(extracts[i]->inVal != 0)
+			printf("| Valor de entrada: %.2f\n", extracts[i]->inVal);
+		if(extracts[i]->outVal != 0)
+			printf("| Valor de saida%.2f\n", extracts[i]->outVal);
+
+		printf("| DATA: %s\n", asctime(extracts[i]->tm));
+
+		printf("+----------------------------------------------------------------+\n");
+	}
+}
+
+void transfers(){
+	char transferUser[50];
+	float transferValue;
+	printf("Digite o nome da pessoa o qual vai receber: ");
+	scanf(" %[^\n]%*c", transferUser);
+
+	printf("Quanto você vai transferir para %s: ", transferUser);
+	scanf("%f", &transferValue);
+	
+	time_t t = time(NULL);
+
+	receipt.tm = localtime(&t);
+	receipt.transferValue = transferValue;
+	user.income = user.income - transferValue;
+	printf("+------------------------------------------------------+\n");
+	printf("| Tranferido de %s para %s\n", user.name, transferUser);
+	printf("| DATA: %s", asctime(receipt.tm));
+	printf("| Valor transferido: %.2f\n", receipt.transferValue);
+	printf("| Valor na conta bancaria: %.2f\n", user.income);
+	printf("+------------------------------------------------------+\n");
+
+	createExtract("Tranferencia", transferUser, 0, transferValue);
+
+	char yn;
+	printf("Deseja imprimir o comprovante? [s] Sim [n] Não.: ");
+	scanf(" %c", &yn);
+
+	if(yn == 's'){
+		printf("Imprimindo...\n");
+		printf("Impresso com sucesso! Dê uma olhada na sua impressora;\n");
+	}
+}
+
+void menu(){
+
+	int opt;
+
 
 	printf("\nMENU DE OPÇÕES.\n");
 	printf("[1] Sacar dinheiro.\n");
@@ -117,42 +257,12 @@ void menu(){
 	switch(opt){
 		// Sacar dinheiro
 		case 1: {
-			float value;
-			printf("Quanto deseja sacar? ");
-			scanf("%f", &value);
-			while(value > user.income){
-				printf("Você não pode sacar mais do que tem!\n");
-				printf("Você possui %.2f\n", user.income);
-				printf("Quanto deseja sacar? ");
-				scanf("%f", &value);
-			}
-
-			user.income = user.income - value;
-			printf("Você sacou %.2f com sucesso!", value);
+			withdraw();
 		} break;
 
 		//Depositar dinheiro
 		case 2: {
-			float deposit;
-			printf("Quanto deseja depositar? ");
-			scanf("%f", &deposit);
-
-			receipt.tm = localtime(&t);
-			receipt.depositValue = deposit;
-			user.income = user.income + deposit;
-			printf("+------------------------------------------------------+\n");
-			printf("| DATA: %s", asctime(receipt.tm));
-			printf("| Valor depositado: %.2f\n", deposit);
-			printf("| Valor na conta bancaria: %.2f\n", user.income);
-			printf("+------------------------------------------------------+\n");
-
-			printf("Deseja imprimir o comprovante? [s] Sim [n] Não.: ");
-			scanf(" %c", &yn);
-
-			if(yn == 's'){
-				printf("Imprimindo...\n");
-				printf("Impresso com sucesso! Dê uma olhada na sua impressora;\n");
-			}
+			deposit();
 		} break;
 
 		// Saldos e extratos
@@ -163,44 +273,22 @@ void menu(){
 			printf("[2] Extrato.\n");
 			printf("Excolha uma opção: ");
 			scanf("%d", &opt2);
+time_t t = time(NULL);
 
 			struct tm *tm = localtime(&t);
+			
 			if(opt2 == 1){
-				printf("+---------------------------------------------------------------------+\n");
-				printf("| Seu saldo atual: %.2f\n", user.income);
-				printf("| Seu nome no registro: %s\n", user.name);
-				printf("| Data da atual situação do saldo: %s\n", asctime(tm));
-				printf("+---------------------------------------------------------------------+\n");
+				balance();
+			}
+
+			if(opt2 == 2){
+				listExtracts();
 			}
 		} break;
 
 		// Transferencias
 		case 4: {
-			char transferUser[50];
-			float transferValue;
-			printf("Digite o nome da pessoa o qual vai receber: ");
-			scanf(" %[^\n]%*c", transferUser);
-
-			printf("Quanto você vai transferir para %s: ", transferUser);
-			scanf("%f", &transferValue);
-
-			receipt.tm = localtime(&t);
-			receipt.transferValue = transferValue;
-			user.income = user.income - transferValue;
-			printf("+------------------------------------------------------+\n");
-			printf("| Tranferido de %s para %s\n", user.name, transferUser);
-			printf("| DATA: %s", asctime(receipt.tm));
-			printf("| Valor transferido: %.2f\n", receipt.transferValue);
-			printf("| Valor na conta bancaria: %.2f\n", user.income);
-			printf("+------------------------------------------------------+\n");
-
-			printf("Deseja imprimir o comprovante? [s] Sim [n] Não.: ");
-			scanf(" %c", &yn);
-
-			if(yn == 's'){
-				printf("Imprimindo...\n");
-				printf("Impresso com sucesso! Dê uma olhada na sua impressora;\n");
-			}
+			transfers();
 		} break;
 
 		// Trocar senhas
@@ -214,7 +302,6 @@ void menu(){
 			printf("Operação inválida!\n");
 		break;
 	}
-
 }
 
 int main(){
@@ -233,4 +320,6 @@ int main(){
 
 	while(true)
 		menu();
+
+	return 0;
 }
