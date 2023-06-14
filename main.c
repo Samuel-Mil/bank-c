@@ -7,19 +7,21 @@
 
 #define MAX_SIZE 100
 
+// Declaração do tipo: usuarios
 struct Users {
 	char name[50];
 	float income;
 	int password;
 } user;
 
-// Comprovantes
+// Declaracao do tipo: Comprovantes
 struct Receipt{
 	struct tm *tm;
 	float depositValue;
 	float transferValue;
 } receipt;
 
+// Declaracao do tipo: Extrato
 struct Extract{
 	char type[20];
 	char name[50];
@@ -28,9 +30,12 @@ struct Extract{
 	struct tm *tm;
 };
 
+// Declaração do array de extratos
 struct Extract *extracts[MAX_SIZE];
+// Contador nescessario para incrementar valores no array extratos, maximo = 100
 int counter = 0;
 
+// Contador de digitos para a senha
 int countDigits(int num) {
     int count = 0;
     while (num != 0) {
@@ -40,6 +45,7 @@ int countDigits(int num) {
     return count;
 }
 
+// Funcao para criar usuario
 void signup(){
 	printf("Digite o seu nome completo: ");
 	scanf("%[^\n]%*c", user.name);
@@ -57,6 +63,7 @@ void signup(){
 	}
 }
 
+// Verifica se senha esta correta, se errar 3 vzs o programa encerra
 bool verifyPassword(int password){
 	if(password != user.password){
 		int trys = 3;
@@ -76,6 +83,7 @@ bool verifyPassword(int password){
 	return true;
 }
 
+// Funcao para efetuar o login no sistema
 bool login(){
 	int password;
 	printf("Digite sua senha: ");
@@ -87,6 +95,7 @@ bool login(){
 	return true;
 }
 
+// Funcao para trocar senha com validacao
 bool changePassword(){
 	int password;
 	printf("Digite sua senha atual: ");
@@ -107,6 +116,7 @@ bool changePassword(){
 	return true;
 }
 
+// Funcao q cria um extrato para cada deposito, tranferencia e saque
 void createExtract(
 	char *type,
 	char *name,
@@ -135,6 +145,7 @@ void createExtract(
 	counter++;
 }
 
+// Funcao para saques
 void withdraw(){
 	float value;
 	printf("Quanto deseja sacar? ");
@@ -151,6 +162,7 @@ void withdraw(){
 	printf("Você sacou %.2f com sucesso!", value);
 }
 
+// Funcao para depositos
 void deposit(){
 	float deposit;
 	printf("Quanto deseja depositar? ");
@@ -177,6 +189,7 @@ time_t t = time(NULL);
 	}
 }
 
+// Funcao para mostrar o saldo
 void balance(){
 	time_t t = time(NULL);
 	struct tm *tm;
@@ -187,6 +200,7 @@ void balance(){
 	printf("+---------------------------------------------------------------------+\n");
 }
 
+// Funcao que lista os estratos com verificacao de valores vazios ou iguais a 0
 void listExtracts(){
 	printf("SEUS EXTRATOS:\n");
 
@@ -206,6 +220,8 @@ void listExtracts(){
 		printf("+----------------------------------------------------------------+\n");
 	}
 }
+
+// Funcao que efetua as transferencias baseada no nome de quem vai receber
 
 void transfers(){
 	char transferUser[50];
@@ -240,6 +256,7 @@ void transfers(){
 	}
 }
 
+// Menu de opcoes para selecionar operacoes baseado em SWITCH
 void menu(){
 
 	int opt;
@@ -304,6 +321,7 @@ time_t t = time(NULL);
 	}
 }
 
+// Ponto de entraada do sistema onde eh efetuado o cadastro, login, e menu fica em loop infinito. 
 int main(){
 	setlocale(LC_ALL, "Portuguese");
 
