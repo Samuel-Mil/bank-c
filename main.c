@@ -194,7 +194,7 @@ void listExtracts(){
 		printf("+----------------------------------------------------------------+\n");
 		printf("| Tipo: %s\n", extracts[i]->type);
 
-		if(extracts[i]->name != "")
+		if(strcmp(extracts[i]->name, "") != 0) 
 			printf("| Quem Recebeu: %s\n", extracts[i]->name);
 		if(extracts[i]->inVal != 0)
 			printf("| Valor de entrada: %.2f\n", extracts[i]->inVal);
